@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ректорский тест по БЖД</title>
+<style>
+html{-webkit-text-size-adjust:100%}
+/* Layout: одна узкая колонка-«бланк» по центру; сверху шапка с прогрессом, ниже карточка задания. */
+:root{
+  --bg:#F2F5F1;
+  --surface:#FFFFFF;
+  --ink:#152019;
+  --muted:#5A6A60;
+  --line:#D3DCD5;
+  --accent:#157A4B;      /* зелёный знаков эвакуации */
+  --accent-soft:#E2F1E8;
+  --on-accent:#FFFFFF;
+  --ok:#1C8549;
+  --ok-soft:#E1F3E7;
+  --bad:#BE3328;
+  --bad-soft:#FBE7E4;
+  --warn:#A86A00;
+  --warn-soft:#FFF3D6;
+  --font-display:'Unbounded','Golos Text',system-ui,sans-serif;
+  --font-body:'Golos Text',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,'SF Mono',Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1411;--surface:#16201A;--ink:#E4ECE6;--muted:#93A399;--line:#2A372F;
+  --accent:#3DBE7F;--accent-soft:#183326;--on-accent:#06130C;
+  --ok:#45C47F;--ok-soft:#163222;--bad:#F06A5C;--bad-soft:#3A1915;--warn:#F2B33D;--warn-soft:#352812;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1411;--surface:#16201A;--ink:#E4ECE6;--muted:#93A399;--line:#2A372F;
+  --accent:#3DBE7F;--accent-soft:#183326;--on-accent:#06130C;
+  --ok:#45C47F;--ok-soft:#163222;--bad:#F06A5C;--bad-soft:#3A1915;--warn:#F2B33D;--warn-soft:#352812;
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:17px;line-height:1.5;
+  padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1,h2{font-family:var(--font-display);font-weight:700;line-height:1.15;margin:0;text-wrap:balance}
+h1{font-size:clamp(26px,6vw,36px);letter-spacing:-.01em}
+h2{font-size:20px}
+p{margin:0}
+.muted{color:var(--muted)}
+.mono{font-family:var(--font-mono);font-size:13px;letter-spacing:.02em}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* шапка */
+.top{display:flex;flex-direction:column;gap:12px}
+.eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);width:0;transition:width .25s}
+.meta{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+
+/* карточки */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px clamp(16px,4vw,28px);display:flex;flex-direction:column;gap:18px}
+.qhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tag{font-family:var(--font-mono);font-size:12px;padding:3px 8px;border-radius:4px;background:var(--accent-soft);color:var(--accent)}
+.qtext{font-size:19px;font-weight:600;line-height:1.4}
+.lead{color:var(--muted);font-size:16px}
+.instr{font-size:14px;color:var(--muted)}
+
+/* варианты */
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;padding:12px 14px;border:1.5px solid var(--line);border-radius:8px;background:transparent;cursor:pointer;line-height:1.35}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt .num{font-family:var(--font-mono);font-size:14px;min-width:22px;height:22px;display:grid;place-items:center;border-radius:4px;border:1.5px solid var(--line);flex:none}
+.opt.multi .num{border-radius:4px}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt.sel .num{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.right .num{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt.wrong .num{background:var(--bad);border-color:var(--bad);color:var(--surface)}
+.opt:disabled{cursor:default}
+
+/* последовательность */
+.seq{display:flex;flex-direction:column;gap:8px}
+.slot{min-height:46px;display:flex;align-items:center;gap:12px;padding:10px 14px;border:1.5px dashed var(--line);border-radius:8px;color:var(--muted);font-size:15px}
+.slot.filled{border-style:solid;border-color:var(--accent);color:var(--ink);background:var(--accent-soft)}
+.slot .pos{font-family:var(--font-mono);font-size:14px;color:var(--accent);min-width:22px}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;cursor:pointer;font-size:15px;align-self:flex-start}
+
+/* соответствие */
+.rightlist{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:8px;background:var(--bg);font-size:15px}
+.rightlist div{display:flex;gap:10px}
+.rightlist b{font-family:var(--font-mono);color:var(--accent);min-width:18px}
+.match{display:flex;flex-direction:column;gap:10px}
+.mrow{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:10px 14px;border:1.5px solid var(--line);border-radius:8px}
+.mrow.right{border-color:var(--ok);background:var(--ok-soft)}
+.mrow.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.mrow span{min-width:0}
+select{font:inherit;font-family:var(--font-mono);font-size:15px;padding:6px 8px;border:1.5px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);min-width:64px}
+
+/* верно/неверно */
+.tf{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tf .opt{justify-content:center;font-weight:600}
+
+/* ввод */
+input[type=text]{font:inherit;font-size:18px;width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+input[type=text].right{border-color:var(--ok);background:var(--ok-soft)}
+input[type=text].wrong{border-color:var(--bad);background:var(--bad-soft)}
+
+/* разбор */
+.fb{display:flex;flex-direction:column;gap:8px;padding:14px 16px;border-radius:8px;font-size:16px}
+.fb.ok{background:var(--ok-soft);color:var(--ink);border-left:4px solid var(--ok)}
+.fb.no{background:var(--bad-soft);color:var(--ink);border-left:4px solid var(--bad)}
+.fb strong{font-weight:700}
+.note{padding:12px 14px;border-radius:8px;background:var(--warn-soft);border-left:4px solid var(--warn);font-size:15px}
+
+/* кнопки */
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{padding:12px 20px;border-radius:8px;border:1.5px solid var(--accent);background:var(--accent);color:var(--on-accent);font-weight:600;cursor:pointer}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--accent)}
+
+/* старт */
+.sections{display:flex;flex-direction:column;gap:8px}
+.sec{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px 14px;border:1.5px solid var(--line);border-radius:8px;cursor:pointer}
+.sec input{width:18px;height:18px;accent-color:var(--accent)}
+.sec .cnt{font-family:var(--font-mono);font-size:13px;color:var(--muted)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.chip{padding:8px 14px;border-radius:999px;border:1.5px solid var(--line);background:transparent;cursor:pointer;font-size:15px}
+.chip[aria-pressed=true]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:600}
+.last{font-size:15px}
+
+/* итог */
+.score{font-family:var(--font-display);font-size:clamp(44px,12vw,64px);font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.score small{font-size:.4em;color:var(--muted);font-weight:500}
+.breakdown{display:flex;flex-direction:column;gap:6px;font-size:15px}
+.breakdown div{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}
+.breakdown span:last-child{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.mist{display:flex;flex-direction:column;gap:12px}
+.mist article{padding:14px 16px;border:1px solid var(--line);border-left:4px solid var(--bad);border-radius:8px;display:flex;flex-direction:column;gap:6px;font-size:15px}
+.mist .q{font-weight:600}
+@media (prefers-reduced-motion:reduce){.bar>i{transition:none}}
+</style>
+
+</head>
+<body>
+<main class="wrap" id="app"></main>
+
+<script>
+(()=>{
+'use strict';
+const SECTIONS=[
+  {id:1,name:'Один или несколько ответов',range:[1,20]},
+  {id:2,name:'Последовательность',range:[21,27]},
+  {id:3,name:'Соответствие',range:[28,35]},
+  {id:4,name:'Верно / неверно',range:[36,50]},
+  {id:5,name:'Ввод слова или числа',range:[51,60]},
+];
+const ONE='Укажите правильный ответ', THREE='Укажите номера трёх правильных ответов';
+/* Вопросы и ключ — из материалов к ректорскому тестированию (RTF и презентация). */
+const Q=[
+ {n:1,t:'single',i:ONE,q:'Альфа-излучение представляет собой',o:['поток электронов','поток ядер гелия','поток ядерных частиц, не имеющих электрического заряда','поток нейтронов'],a:[2]},
+ {n:2,t:'single',i:ONE,q:'Прогрессирующее во времени и пространстве распространение инфекционного заболевания среди людей, значительно превышающее обычно регистрируемый на данной территории уровень заболеваемости, называется',o:['пандемия','эпидемия','эпизоотия','эпифитотия'],a:[2]},
+ {n:3,t:'single',i:ONE,q:'За охрану труда на производственном участке отвечает:',o:['специалист по охране труда','старший общественный инспектор по охране труда','технический инспектор по охране труда','руководитель производственного участка'],a:[4],note:'Если ответ нужно ввести словами, пишите три слова: «руководитель производственного участка».'},
+ {n:4,t:'multi',i:THREE,q:'По ТК РФ виновные за нарушение требований безопасности на производстве несут ответственность:',o:['социальную','дисциплинарную','моральную','административную','уголовную'],a:[2,4,5]},
+ {n:5,t:'single',i:ONE,q:'Внеплановый инструктаж проводится',o:['при переводе на другую работу','периодически','после каждого несчастного случая','через каждые полгода'],a:[3]},
+ {n:6,t:'single',i:ONE,q:'Объект изучения БЖД — это',o:['среда или условия обитания человека','опасные и вредные факторы','чрезвычайные ситуации','деятельность человека'],a:[1]},
+ {n:7,t:'single',i:ONE,q:'К развитию злокачественных опухолей у человека приводят вредные вещества',o:['общетоксические','раздражающие','сенсибилизирующие','канцерогенные'],a:[4]},
+ {n:8,t:'single',i:ONE,q:'Неотпускающий ток возникает при переменном токе силой',o:['6–7 мА','10–15 мА','25–30 мА','40–50 мА'],a:[2]},
+ {n:9,t:'single',i:ONE,q:'Электропроводку и электроустановки можно тушить огнетушителем',o:['пенным','углекислотным','химически-пенным','воздушно-пенным'],a:[2]},
+ {n:10,t:'single',i:ONE,q:'Наиболее опасный путь тока через тело человека',o:['«правая рука — ноги»','«рука — рука»','«голова — ноги»','«нога — нога»'],a:[3]},
+ {n:11,t:'multi',i:THREE,q:'Вероятность электропоражения существует при одновременном выполнении трёх условий:',o:['касание человека металлической части электроустановки','появление на металлической части установки, которой коснулся человек, напряжения опасной величины','отсутствие заземления корпуса установки','короткое замыкание фазного провода на корпус установки','влажный пол'],a:[2,3,4],note:'Запоминайте: 2, 3, 4.'},
+ {n:12,t:'single',i:ONE,q:'Действия для быстрой остановки кровотечения из сонной артерии',o:['Наложить жгут','Закрыть рану сдавливающей повязкой','Артерию зажать пальцем ниже раны'],a:[3]},
+ {n:13,t:'single',i:ONE,q:'При оказании первой помощи при переломах нельзя:',o:['Останавливать кровотечение','Фиксировать повреждённую конечность','Вправлять на место кости'],a:[3]},
+ {n:14,t:'single',i:ONE,q:'К месту растяжения или ушиба необходимо приложить:',o:['холод','тепло','спиртовой компресс'],a:[1]},
+ {n:15,t:'multi',i:'Укажите два правильных ответа',q:'Укажите инструктажи, проводимые с работником при поступлении на работу',o:['Целевой','Вводный','Внеплановый','Текущий','Первичный'],a:[2,5],note:'Будьте внимательны: нужно указать два вида инструктажей.'},
+ {n:16,t:'single',i:ONE,q:'Какой инструктаж должны провести работнику при нарушении трудовой дисциплины?',o:['Целевой','Внеплановый','Первичный','Повторный'],a:[2]},
+ {n:17,t:'single',i:ONE,q:'Единицей измерения эквивалентной дозы является:',o:['Кулон/кг','Рентген','Грей','Зиверт'],a:[4]},
+ {n:18,t:'single',i:ONE,q:'К физическим вредным факторам относятся:',o:['патогенные микроорганизмы','ионизирующие излучения','ферменты','подъём тяжестей'],a:[2]},
+ {n:19,t:'single',i:ONE,q:'Пространство, в котором постоянно существует или периодически возникает опасность, называется…',o:['ноксосфера','гомосфера','наносфера','ноосфера'],a:[1]},
+ {n:20,t:'multi',i:'Укажите два правильных ответа',q:'К ионизирующему излучению относятся:',o:['альфа-излучение','ультразвук','гамма-излучение','инфракрасное излучение'],a:[1,3],note:'Будьте внимательны: нужно указать два вида излучения.'},
+
+ {n:21,t:'order',q:'Установите правильную последовательность действий при оказании помощи пострадавшему от действия электрического тока',o:['расстегнуть одежду, пояс','оказать доврачебную помощь','обезопасить возможное падение пострадавшего с высоты','вынести пострадавшего из зоны шагового напряжения','отключить оборудование от электросети'],a:[3,5,4,1,2],note:'Первое — обезопасить возможное падение с высоты. Второе — отключить оборудование от электросети. Только потом: вынести, расстегнуть, оказать помощь.'},
+ {n:22,t:'order',q:'Укажите правильную последовательность оказания первой помощи при неотложных ситуациях',o:['Проведите первичный осмотр пострадавшего и окажите первую помощь при состояниях, угрожающих его жизни','Вызовите скорую помощь','Осмотрите место происшествия','Проведите вторичный осмотр пострадавшего и при необходимости окажите помощь при выявлении других проблем'],a:[3,1,2,4],note:'Сначала осмотреть место происшествия. Потом: первичный осмотр, скорая помощь, вторичный осмотр.'},
+ {n:23,t:'order',q:'Укажите последовательность действий при проникающем ранении грудной клетки, при условии сохранения сознания у пострадавшего',o:['вызвать скорую медицинскую помощь','перевести пострадавшего в полусидящее положение','наложить герметичную повязку','прижать ладонь к ране, закрывая доступ воздуха'],a:[4,3,2,1],note:'Сначала прижать ладонь к ране. Потом: герметичная повязка, полусидящее положение, скорая помощь.'},
+ {n:24,t:'order',q:'Укажите последовательность действий при обморожении конечностей',o:['снять одежду, обувь, стесняющие украшения','наложить рыхлую термоизолирующую повязку на отмороженные участки','доставить пострадавшего в тёплое помещение','дать пострадавшему тёплое питьё'],a:[3,1,2,4],note:'Сначала доставить в тёплое помещение. Потом: снять одежду, термоизолирующая повязка, тёплое питьё.'},
+ {n:25,t:'order',q:'Укажите последовательность действий в случае травматического шока',o:['вызвать скорую помощь','придать пострадавшему удобное положение','наложить на раны стерильные повязки','остановка кровотечения','прекращение действия травмирующих факторов'],a:[5,4,3,2,1],note:'Сначала прекратить действие травмирующих факторов. Потом: остановка кровотечения, стерильные повязки, удобное положение, скорая помощь.'},
+ {n:26,t:'order',q:'Укажите последовательность действий по оказанию первой помощи при ранении век',o:['охлаждать место травмы','закрыть рану чистым перевязочным материалом и прибинтовать','обеспечить доставку пострадавшего в лечебное учреждение'],a:[2,1,3],note:'Сначала закрыть рану. Потом: охлаждать, доставить.'},
+ {n:27,t:'order',q:'Укажите последовательность действий по оказанию первой помощи при ранении брюшной полости',o:['Накрыть выпавшие органы влажной тканью, чтобы предотвратить высыхание','Закрыть рану нетугой повязкой','Придать пострадавшему удобное положение'],a:[3,2,1],note:'Сначала придать удобное положение. Потом: закрыть рану, накрыть выпавшие органы.'},
+
+ {n:28,t:'match',q:'Установите соответствие',l:['Тератогенез','Эпизоотия','Эпифитотии'],r:['массовое появление инфекционного заражения растений','одновременное распространение инфекционного заболевания среди большого числа одного из многих видов животных','возникновение пороков развития под влиянием факторов внешней среды'],a:[3,2,1]},
+ {n:29,t:'match',q:'Установите соответствие',l:['Дегазация','Дезинфекция','Дезактивация'],r:['разложение отравляющих и сильнодействующих ядовитых веществ до нетоксичных продуктов','удаление радиоактивных веществ с поверхностей предметов','уничтожение инфекции в окружающей среде'],a:[1,3,2]},
+ {n:30,t:'match',q:'Установите соответствие между видами инструктажей и периодом их проведения',l:['Вводный','Повторный','Внеплановый','Целевой'],r:['При выполнении разовых поручений','При поступлении на работу','Один раз в 6 месяцев','При нарушениях требований охраны труда'],a:[2,3,4,1]},
+ {n:31,t:'match',q:'Укажите группу вредных веществ, вызывающих указанные изменения в организме человека',l:['Общетоксические','Раздражающие','Сенсибилизирующие','Канцерогенные','Мутагенные'],r:['приводят к изменению наследственной информации','отравление всего организма','приводят к возникновению злокачественных опухолей','приводят к возникновению аллергии','раздражение слизистых оболочек и дыхательного тракта'],a:[2,5,4,3,1]},
+ {n:32,t:'match',q:'Установите соответствие между видом ответственности и мерой наказания за нарушение нормативных требований охраны труда',l:['Дисциплинарная','Административная','Уголовная'],r:['Исправительные работы','Выговор','Штраф из зарплаты оштрафованного'],a:[2,3,1]},
+ {n:33,t:'match',q:'Установите соответствие между видом и характеристикой ионизирующего излучения',l:['Альфа-излучение','Бета-излучение','Нейтроны'],r:['поток отрицательно заряженных электронов','поток ядер гелия','поток ядерных частиц, не имеющих электрического заряда'],a:[2,1,3]},
+ {n:34,t:'match',q:'Установите соответствие между видом акустических колебаний и частотой колебаний',l:['Инфразвук','Звуковой диапазон','Ультразвук'],r:['свыше 20 000 Гц','20–20 000 Гц','0–20 Гц'],a:[3,2,1]},
+ {n:35,t:'match',q:'Установите соответствие между категорией работы по общим энергозатратам и характером выполняемой работы',l:['Iа','Iб','IIа','IIб','III'],r:['работы, связанные с постоянными передвижениями и переноской тяжестей свыше 10 кг','работы, связанные с ходьбой и переноской тяжестей до 10 кг','работы, связанные с постоянной ходьбой, перемещением изделий до 1 кг','работы, производимые сидя, стоя или связанные с ходьбой и сопровождающиеся физическим напряжением','работы, производимые сидя и сопровождающиеся незначительным физическим напряжением'],a:[5,4,3,2,1]},
+
+ {n:36,t:'tf',lead:'Основной способ временной остановки артериального кровотечения — наложение кровоостанавливающего жгута.',q:'Верно ли, что при артериальном кровотечении кровоостанавливающий жгут накладывается выше раны?',a:true},
+ {n:37,t:'tf',q:'Верно ли, что максимальное время нахождения жгута на конечности во избежание омертвения тканей не должно превышать 60 минут в тёплое время года и 30 минут в холодное?',a:true},
+ {n:38,t:'tf',q:'Верно ли, что при остановке носового кровотечения голову пострадавшего необходимо запрокидывать назад?',a:false},
+ {n:39,t:'tf',q:'Верно ли, что при ранении брюшной полости и выпадении внутренних органов пострадавшему питьё давать нельзя?',a:true},
+ {n:40,t:'tf',q:'Верно ли, что при оказании первой помощи при ранении необходимо промыть рану дезинфицирующим раствором (йода, марганцовокислого калия)?',a:false},
+ {n:41,t:'tf',q:'Верно ли, что при оказании первой помощи при ранении необходимо удалить из раны инородные тела и костные обломки?',a:false},
+ {n:42,t:'tf',q:'Верно ли, что при оказании первой помощи при ранении необходимо вправлять выпавшие внутренние органы (мозг, петля кишки) внутрь полости?',a:false},
+ {n:43,t:'tf',q:'Верно ли, что при попадании в глаза щелочного раствора необходимо промыть глаза проточной водой в течение 20–30 минут?',a:true},
+ {n:44,t:'tf',q:'Верно ли, что при термическом ожоге с повреждёнными ожоговыми пузырями необходимо обработать место ожога жиросодержащим веществом?',a:false},
+ {n:45,t:'tf',q:'Верно ли, что в рамках первой помощи при колотых и резаных ранениях глаз или век их необходимо промывать водой?',a:false},
+ {n:46,t:'tf',q:'Верно ли, что при попадании кислоты в глаза их необходимо промыть большим количеством мыльного раствора?',a:false},
+ {n:47,t:'tf',lead:'У пострадавшего сильные боли в животе, сухость языка, тошнота, рвота, живот вздут. Больной лежит на спине или на боку с согнутыми в коленных и тазобедренных суставах ногами.',q:'Верно ли, что пострадавшему в этом случае нельзя давать пить?',a:true},
+ {n:48,t:'tf',lead:'При ранении у пострадавшего наблюдается пульсирующая алая струя крови, быстро расплывающаяся лужа крови алого цвета.',q:'Верно ли, что по указанным признакам у пострадавшего наблюдается венозное кровотечение?',a:false},
+ {n:49,t:'tf',lead:'В качестве расчётной величины при переменном токе промышленной частоты сопротивление тела человека принимают 1000 Ом.',q:'Верно ли, что сопротивление тела человека не является постоянной величиной?',a:true},
+ {n:50,t:'tf',q:'Верно ли, что при подозрении на шаговое напряжение безопасным является выход из опасной зоны медленными шажками, «гусиным» шагом, как минимум на 8 метров?',a:true},
+
+ {n:51,t:'input',q:'Коэффициент естественного освещения измеряется в …',a:['%'],alt:['процент','процентах','проценты','процентов','в %','в процентах']},
+ {n:52,t:'input',q:'Вводный инструктаж по охране труда на предприятии проводит …',a:['специалист по охране труда'],alt:[]},
+ {n:53,t:'input',q:'Целевой инструктаж по охране труда проводит …',a:['руководитель работ'],alt:[]},
+ {n:54,t:'input',q:'Минимальная площадь на одно рабочее место по нормам … м²',a:['4,5'],alt:['4.5'],note:'Пишите только число: 4,5'},
+ {n:55,t:'input',q:'Предельно допустимая норма электромагнитного излучения для человека — … мкТл',a:['0,2'],alt:['0.2'],note:'Пишите только число: 0,2'},
+ {n:56,t:'input',q:'Единица измерения освещённости — …',a:['люкс'],alt:['лк']},
+ {n:57,t:'input',q:'Химическая реакция, которая сопровождается выделением тепла и света, называется …',a:['горение'],alt:[]},
+ {n:58,t:'input',q:'Часть биосферы, преобразованная человеком с помощью воздействия технических средств, а также технические и техногенные объекты называется …',a:['техносфера'],alt:[]},
+ {n:59,t:'input',q:'Беспорядочное сочетание звуков различной частоты и интенсивности называется …',a:['шум'],alt:[]},
+ {n:60,t:'input',q:'Единица измерения громкости — …',a:['децибел'],alt:['дб','децибелы']},
+];
+const BY=Object.fromEntries(Q.map(x=>[x.n,x]));
+const secOf=n=>SECTIONS.find(s=>n>=s.range[0]&&n<=s.range[1]);
+const LET='АБВГДЕ';
+
+/* ---------- хранилище (только удобство, страница работает и без него) ---------- */
+const store={
+  get(k,d){try{const v=localStorage.getItem('bzhd:'+k);return v?JSON.parse(v):d}catch(e){return d}},
+  set(k,v){try{localStorage.setItem('bzhd:'+k,JSON.stringify(v))}catch(e){}}
+};
+
+/* ---------- состояние ---------- */
+let S={phase:'start',mode:store.get('mode','train'),shuffle:store.get('shuffle',false),secs:[1,2,3,4,5],queue:[],idx:0,answers:{},checked:false,cur:null};
+
+const app=document.getElementById('app');
+const h=(tag,attrs={},...kids)=>{const e=document.createElement(tag);for(const[k,v]of Object.entries(attrs)){if(k==='class')e.className=v;else if(k.startsWith('on'))e.addEventListener(k.slice(2),v);else if(v===true)e.setAttribute(k,'');else if(v!==false&&v!=null)e.setAttribute(k,v);}for(const c of kids.flat()){if(c==null||c===false)continue;e.append(c.nodeType?c:document.createTextNode(c));}return e;};
+const put=(el,...kids)=>el.append(...kids.filter(k=>k!=null&&k!==false));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
+
+/* ---------- проверка ответа ---------- */
+const norm=s=>String(s||'').toLowerCase().replace(/ё/g,'е').replace(/[«»"]/g,'').replace(/\s+/g,' ').replace(/[.!;:]+$/,'').trim();
+function isEmpty(q,v){
+  if(v==null)return true;
+  if(q.t==='single'||q.t==='multi')return !v.length;
+  if(q.t==='order')return v.length<q.o.length;
+  if(q.t==='match')return v.some(x=>!x);
+  if(q.t==='tf')return typeof v!=='boolean';
+  if(q.t==='input')return !norm(v);
+  return true;
+}
+function isRight(q,v){
+  if(isEmpty(q,v))return false;
+  if(q.t==='single'||q.t==='multi'){const a=[...v].sort((x,y)=>x-y);return a.length===q.a.length&&a.every((x,i)=>x===q.a[i]);}
+  if(q.t==='order'||q.t==='match')return v.every((x,i)=>x===q.a[i]);
+  if(q.t==='tf')return v===q.a;
+  if(q.t==='input'){const s=norm(v);return [...q.a,...q.alt].some(x=>norm(x)===s);}
+}
+function answerText(q){
+  if(q.t==='single'||q.t==='multi')return q.a.map(i=>i+'. '+q.o[i-1]).join('; ');
+  if(q.t==='order')return 'Порядок: '+q.a.join(', ');
+  if(q.t==='match')return q.a.map((r,i)=>(i+1)+' — '+LET[r-1]).join(', ');
+  if(q.t==='tf')return q.a?'Верно':'Неверно';
+  if(q.t==='input')return q.a[0];
+}
+
+/* ---------- экраны ---------- */
+function render(){
+  app.replaceChildren();
+  if(S.phase==='start')renderStart();
+  else if(S.phase==='quiz')renderQuiz();
+  else renderResult();
+  window.scrollTo({top:0});
+}
+
+function renderStart(){
+  const last=store.get('last',null), mistakes=store.get('mistakes',[]);
+  const secRows=SECTIONS.map(s=>{
+    const cb=h('input',{type:'checkbox',id:'sec'+s.id,checked:S.secs.includes(s.id),onchange:e=>{S.secs=e.target.checked?[...S.secs,s.id].sort():S.secs.filter(x=>x!==s.id);startBtn.disabled=!S.secs.length;}});
+    return h('label',{class:'sec',for:'sec'+s.id},cb,h('span',{},s.name),h('span',{class:'cnt'},'№ '+s.range[0]+'–'+s.range[1]));
+  });
+  const modeChip=(id,label)=>h('button',{type:'button',class:'chip','aria-pressed':String(S.mode===id),onclick:()=>{S.mode=id;store.set('mode',id);render();}},label);
+  const startBtn=h('button',{class:'btn',type:'button',id:'start',onclick:()=>begin(Q.filter(q=>S.secs.includes(secOf(q.n).id)).map(q=>q.n))},'Начать');
+  startBtn.disabled=!S.secs.length;
+  put(app,
+    h('header',{class:'top'},
+      h('span',{class:'eyebrow'},'Безопасность жизнедеятельности'),
+      h('h1',{},'Ректорский тест по БЖД'),
+      h('p',{class:'muted'},'60 заданий в формате тестирования: выбор ответа, последовательность, соответствие, верно/неверно и ввод слова.')),
+    h('section',{class:'card'},
+      h('h2',{},'Разделы'),
+      h('div',{class:'sections'},secRows),
+      h('h2',{},'Режим'),
+      h('div',{class:'row'},modeChip('train','Тренировка: ответ сразу'),modeChip('exam','Экзамен: ответы в конце')),
+      h('label',{class:'sec',for:'shuf',style:'grid-template-columns:auto 1fr'},
+        h('input',{type:'checkbox',id:'shuf',checked:S.shuffle,onchange:e=>{S.shuffle=e.target.checked;store.set('shuffle',S.shuffle);}}),
+        h('span',{},'Перемешать задания')),
+      h('div',{class:'actions'},startBtn,
+        mistakes.length?h('button',{class:'btn ghost',type:'button',onclick:()=>begin(mistakes)},'Повторить ошибки ('+mistakes.length+')'):null),
+      last?h('p',{class:'last muted'},'Прошлый результат: '+last.right+' из '+last.total+' ('+Math.round(last.right/last.total*100)+'%).'):null)
+  );
+}
+
+function begin(list){
+  S.queue=S.shuffle?shuffle(list):list.slice();
+  S.idx=0;S.answers={};S.checked=false;S.phase='quiz';S.cur=null;
+  render();
+}
+
+function renderQuiz(){
+  const n=S.queue[S.idx],q=BY[n],sec=secOf(n);
+  if(S.cur==null)S.cur=S.answers[n]!=null?S.answers[n]:initVal(q);
+  const done=S.idx/S.queue.length*100;
+  const bar=h('div',{class:'bar'},h('i',{style:'width:'+done+'%'}));
+  const card=h('section',{class:'card','aria-live':'polite'});
+  put(card,
+    h('div',{class:'qhead'},h('span',{class:'tag'},'Задание № '+n),h('span',{class:'mono muted'},sec.name)),
+    q.lead?h('p',{class:'lead'},q.lead):null,
+    h('p',{class:'qtext'},q.q),
+    q.i?h('p',{class:'instr'},q.i):null,
+    body(q),
+  );
+  if(S.checked&&S.mode==='train'){
+    const ok=isRight(q,S.cur);
+    put(card,h('div',{class:'fb '+(ok?'ok':'no')},h('strong',{},ok?'Верно':'Неверно'),ok?null:h('span',{},'Правильный ответ: '+answerText(q))));
+    if(q.note)put(card,h('p',{class:'note'},q.note));
+  }else if(q.note&&q.t==='input'){put(card,h('p',{class:'note'},q.note));}
+  const primary=h('button',{class:'btn',type:'button',id:'primary',onclick:onPrimary});
+  if(S.mode==='train'&&!S.checked){primary.textContent='Проверить';primary.disabled=isEmpty(q,S.cur);}
+  else primary.textContent=S.idx===S.queue.length-1?'Завершить':'Дальше';
+  if(S.mode==='exam')primary.disabled=false;
+  put(card,h('div',{class:'actions'},primary,
+    h('button',{class:'btn ghost',type:'button',onclick:()=>{if(!isEmpty(q,S.cur))S.answers[n]=S.cur;finish(true);}},'Закончить тест')));
+  put(app,
+    h('header',{class:'top'},
+      h('div',{class:'meta'},h('span',{},'Вопрос '+(S.idx+1)+' из '+S.queue.length),h('span',{},S.mode==='train'?'Тренировка':'Экзамен')),bar),
+    card);
+}
+
+function initVal(q){
+  if(q.t==='single'||q.t==='multi'||q.t==='order')return [];
+  if(q.t==='match')return q.l.map(()=>0);
+  if(q.t==='tf')return null;
+  return '';
+}
+function refreshPrimary(q){
+  const b=document.getElementById('primary');
+  if(b&&S.mode==='train'&&!S.checked)b.disabled=isEmpty(q,S.cur);
+}
+function onPrimary(){
+  const n=S.queue[S.idx],q=BY[n];
+  if(S.mode==='train'&&!S.checked){if(isEmpty(q,S.cur))return;S.answers[n]=S.cur;S.checked=true;render();return;}
+  S.answers[n]=S.cur;
+  if(S.idx<S.queue.length-1){S.idx++;S.checked=false;S.cur=null;render();}
+  else finish();
+}
+
+function body(q){
+  const locked=S.checked&&S.mode==='train';
+  if(q.t==='single'||q.t==='multi'){
+    return h('div',{class:'opts',role:q.t==='single'?'radiogroup':'group'},q.o.map((txt,i)=>{
+      const k=i+1,sel=S.cur.includes(k);
+      let cls='opt'+(q.t==='multi'?' multi':'')+(sel?' sel':'');
+      if(locked){if(q.a.includes(k))cls='opt right';else if(sel)cls='opt wrong';}
+      return h('button',{type:'button',class:cls,disabled:locked,role:q.t==='single'?'radio':'checkbox','aria-checked':String(sel),onclick:()=>{
+        if(q.t==='single')S.cur=[k];else S.cur=sel?S.cur.filter(x=>x!==k):[...S.cur,k];
+        render();}},h('span',{class:'num'},String(k)),h('span',{},txt));
+    }));
+  }
+  if(q.t==='order'){
+    const wrap=h('div',{class:'opts'});
+    wrap.append(h('p',{class:'instr'},'Нажимайте на действия по порядку: первое, второе и так далее.'));
+    q.o.forEach((txt,i)=>{
+      const k=i+1,pos=S.cur.indexOf(k);
+      let cls='opt'+(pos>=0?' sel':'');
+      if(locked){cls='opt '+(S.cur[q.a.indexOf(k)]===k?'right':'wrong');}
+      wrap.append(h('button',{type:'button',class:cls,disabled:locked,onclick:()=>{
+        S.cur=pos>=0?S.cur.filter(x=>x!==k):[...S.cur,k];render();}},
+        h('span',{class:'num'},pos>=0?String(pos+1):''),h('span',{},k+'. '+txt)));
+    });
+    if(!locked&&S.cur.length)wrap.append(h('button',{type:'button',class:'linkbtn',onclick:()=>{S.cur=[];render();}},'Сбросить порядок'));
+    wrap.append(h('p',{class:'mono muted'},'Ваш порядок: '+(S.cur.length?S.cur.join(', '):'—')));
+    return wrap;
+  }
+  if(q.t==='match'){
+    const right=h('div',{class:'rightlist'},q.r.map((t,i)=>h('div',{},h('b',{},LET[i]),h('span',{},t))));
+    const rows=h('div',{class:'match'},q.l.map((t,i)=>{
+      const sel=h('select',{id:'m'+q.n+'_'+i,'aria-label':'Соответствие для: '+t,disabled:locked,onchange:e=>{S.cur=S.cur.slice();S.cur[i]=+e.target.value;refreshPrimary(q);}},
+        h('option',{value:'0'},'—'),q.r.map((_,j)=>{const o=h('option',{value:String(j+1)},LET[j]);if(S.cur[i]===j+1)o.selected=true;return o;}));
+      const cls='mrow'+(locked?(S.cur[i]===q.a[i]?' right':' wrong'):'');
+      return h('div',{class:cls},h('span',{},(i+1)+'. '+t),sel);
+    }));
+    return h('div',{class:'opts'},right,rows);
+  }
+  if(q.t==='tf'){
+    const mk=(val,label)=>{
+      let cls='opt'+(S.cur===val?' sel':'');
+      if(locked){if(q.a===val)cls='opt right';else if(S.cur===val)cls='opt wrong';}
+      return h('button',{type:'button',class:cls,disabled:locked,'aria-pressed':String(S.cur===val),onclick:()=>{S.cur=val;render();}},label);
+    };
+    return h('div',{class:'tf'},mk(true,'Верно'),mk(false,'Неверно'));
+  }
+  if(q.t==='input'){
+    const inp=h('input',{type:'text',id:'inp'+q.n,autocomplete:'off',autocapitalize:'off',spellcheck:'false',placeholder:'Введите ответ',value:S.cur||'',readonly:locked,
+      class:locked?(isRight(q,S.cur)?'right':'wrong'):'',
+      oninput:e=>{S.cur=e.target.value;refreshPrimary(q);},
+      onkeydown:e=>{if(e.key==='Enter'){e.preventDefault();onPrimary();}}});
+    if(!locked)setTimeout(()=>{try{inp.focus({preventScroll:true});}catch(e){}},0);
+    return inp;
+  }
+}
+
+function finish(early){
+  const list=early?S.queue.filter(n=>n in S.answers):S.queue.slice();
+  if(!list.length){S.phase='start';render();return;}
+  S.phase='result';
+  const wrong=list.filter(n=>!isRight(BY[n],S.answers[n]));
+  const right=list.length-wrong.length;
+  store.set('last',{right,total:list.length});
+  store.set('mistakes',wrong);
+  S.result={right,total:list.length,wrong,list};
+  render();
+}
+
+function renderResult(){
+  const {right,total,wrong,list}=S.result||{right:0,total:0,wrong:[],list:[]};
+  const pct=total?Math.round(right/total*100):0;
+  const perSec=SECTIONS.map(s=>{const ns=list.filter(n=>secOf(n).id===s.id);if(!ns.length)return null;const r=ns.filter(n=>isRight(BY[n],S.answers[n])).length;return h('div',{},h('span',{},s.name),h('span',{},r+' / '+ns.length));}).filter(Boolean);
+  const mist=wrong.map(n=>{const q=BY[n],v=S.answers[n];
+    return h('article',{},h('span',{class:'tag',style:'align-self:flex-start'},'Задание № '+n),h('span',{class:'q'},q.q),
+      h('span',{},'Ваш ответ: '+(isEmpty(q,v)?'нет ответа':userText(q,v))),
+      h('span',{},'Правильно: '+answerText(q)),
+      q.note?h('span',{class:'muted'},q.note):null);});
+  put(app,
+    h('header',{class:'top'},h('span',{class:'eyebrow'},'Итог'),h('h1',{},pct>=85?'Отлично, вы готовы':pct>=60?'Неплохо, повторите ошибки':'Нужно повторить')),
+    h('section',{class:'card'},
+      h('div',{class:'score'},String(right),h('small',{},' из '+total+' · '+pct+'%')),
+      h('div',{class:'breakdown'},perSec),
+      h('div',{class:'actions'},
+        wrong.length?h('button',{class:'btn',type:'button',onclick:()=>begin(wrong)},'Повторить ошибки ('+wrong.length+')'):null,
+        h('button',{class:wrong.length?'btn ghost':'btn',type:'button',onclick:()=>{S.phase='start';render();}},'К началу'))),
+    wrong.length?h('section',{class:'mist'},h('h2',{},'Ошибки'),mist):null);
+}
+function userText(q,v){
+  if(q.t==='single'||q.t==='multi')return [...v].sort((a,b)=>a-b).map(i=>i+'. '+q.o[i-1]).join('; ');
+  if(q.t==='order')return v.join(', ');
+  if(q.t==='match')return v.map((r,i)=>(i+1)+' — '+(r?LET[r-1]:'?')).join(', ');
+  if(q.t==='tf')return v?'Верно':'Неверно';
+  return String(v);
+}
+
+/* Enter = основная кнопка */
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||S.phase!=='quiz')return;
+  const t=e.target;if(t.tagName==='INPUT'||t.tagName==='SELECT'||t.tagName==='BUTTON')return;
+  const b=document.getElementById('primary');if(b&&!b.disabled){e.preventDefault();b.click();}
+});
+
+/* сохранить прогресс при обновлении страницы */
+const hot=window.claude&&window.claude.hot;
+if(hot&&hot.snapshot)hot.snapshot(()=>({S}));
+const start=data=>{if(data&&data.S)S=data.S;render();};
+if(hot&&hot.ready)hot.ready(start);else start(hot&&hot.data?hot.data:{});
+})();
+</script>
+
+</body>
+</html>
